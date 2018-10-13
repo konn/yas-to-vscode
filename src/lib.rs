@@ -37,7 +37,7 @@ mod token;
 use token::validate;
 
 fn separating(line: &str) -> bool {
-    if &line[0..0] != "#" {
+    if &line[0..1] != "#" {
         return false;
     }
     (&line[1..]).trim().chars().all(|c| c == '-')
@@ -52,10 +52,10 @@ impl Snippet {
             .position(|a| separating(a))
             .ok_or(ParseError("No metadata separator found".to_string()))?;
         let src = lines[i + 1..].join("\n");
-        let mut dic: HashMap<_, _> = lines[0..i + 1]
+        let mut dic: HashMap<_, _> = lines[0..i - 1]
             .into_iter()
             .map(|l| {
-                let mut it = l.split(":");
+                let mut it = (&l[1..]).split(":");
                 (
                     it.next().unwrap().trim(),
                     it.collect::<Vec<_>>().join(":").trim().to_string(),
@@ -71,4 +71,14 @@ impl Snippet {
         };
         Ok(Converted { result, warnings })
     }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  
+  #[test]
+  fn check_sep() {
+      assert!(separating("# --"))
+  }
 }
