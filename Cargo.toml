@@ -1,0 +1,12 @@
+[package]
+name = "yas-to-vscode"
+version = "0.1.0"
+authors = ["Hiromi ISHII <konn.jinro@gmail.com>"]
+
+[dependencies]
+combine      = "*"
+regex        = "*"
+serde        = "*"
+serde_derive = "*"
+serde_json   = "*"
+sexp         = "*"
