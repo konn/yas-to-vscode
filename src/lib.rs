@@ -19,11 +19,13 @@ pub enum Warning {
     SnippetBodyParseFailed,
 }
 
+#[derive(Debug)]
 pub enum Error {
     ParseError(String),
     MissingField(String),
 }
 
+#[derive(Debug)]
 pub struct Converted<T> {
     pub result: T,
     pub warnings: Vec<Warning>,
