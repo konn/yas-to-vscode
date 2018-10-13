@@ -45,14 +45,14 @@ fn separating(line: &str) -> bool {
 
 use Error::*;
 impl Snippet {
-    pub fn parse(src: &str) -> Result<Snippet> {
+    pub fn parse(name: &str, src: &str) -> Result<Snippet> {
         let lines: Vec<_> = src.lines().collect();
         let i = lines
             .iter()
             .position(|a| separating(a))
             .ok_or(ParseError("No metadata separator found".to_string()))?;
         let src = lines[i + 1..].join("\n");
-        let mut dic: HashMap<_, _> = lines[0..i - 1]
+        let mut dic: HashMap<_, _> = lines[0..i]
             .into_iter()
             .map(|l| {
                 let mut it = (&l[1..]).split(":");
@@ -62,7 +62,7 @@ impl Snippet {
                 )
             }).collect();
         let description: String = dic.remove("description").unwrap_or("".to_string());
-        let prefix = dic.remove("key").ok_or(MissingField("key".to_string()))?;
+        let prefix = dic.remove("key").unwrap_or(name.to_string());
         let (snippet, warnings) = validate(src);
         let result = Snippet {
             prefix,
@@ -80,5 +80,17 @@ mod tests {
   #[test]
   fn check_sep() {
       assert!(separating("# --"))
+  }
+
+  #[test]
+  fn check_sep_2() {
+      let src = r#"# -*- mode: snippet -*-
+# name: assert!
+# key: ass
+# --
+assert!(${true});"
+  }
+}"#;
+        assert_eq!(src.lines().position(separating), Some(3));
   }
 }
