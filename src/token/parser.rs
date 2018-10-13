@@ -56,14 +56,25 @@ fn raw<'a>(inside: bool, input: &mut &'a str) -> ParseResult<Token, &'a str> {
 }
 
 fn lines<'a>(inside: bool, input: &mut &'a str) -> ParseResult<Token, &'a str> {
-    let mut p = sep_end_by(parser(|a| line(inside, a)), newline()).map(Lines);
+    let mut p = sep_end_by(parser(|a| line(inside, a)), newline()).map(|ls: Vec<_>| {
+        if ls.len() == 1 {
+            ls.into_iter().next().unwrap()
+        } else {
+            Lines(ls)
+        }
+    });
     p.parse_stream(input)
 }
 
 fn line<'a>(inside: bool, input: &mut &'a str) -> ParseResult<Token, &'a str> {
     many(parser(move |i| raw(inside, i)).or(parser(primitive)))
-        .map(|ts| Inline(ts))
-        .parse_stream(input)
+        .map(|ts: Vec<_>| {
+            if ts.len() == 1 {
+                ts.into_iter().next().unwrap()
+            } else {
+                Inline(ts)
+            }
+        }).parse_stream(input)
 }
 
 fn primitive<'a>(input: &mut &'a str) -> ParseResult<Token, &'a str> {
@@ -162,18 +173,18 @@ mod tests {
             .collect();
         assert_eq!(
             parser(snippet).parse(src).map(|x| x.0),
-            Ok(Lines(vec![Inline(vec![
+            Ok(Inline(vec![
                 Raw("type role  ".to_string()),
                 Tabstop {
                     number: 1,
-                    contents: Some(Box::new(Lines(vec![Inline(vec![Raw("Type".to_string())])])))
+                    contents: Some(Box::new(Raw("Type".to_string())))
                 },
                 Raw(" ".to_string()),
                 Choice {
                     number: 2,
                     alternatives: roles
                 }
-            ])]))
+            ]))
         );
 
         let src = r#"impl${1:<${2:T}>} ${3:Type$1} {
@@ -189,27 +200,25 @@ mod tests {
                     Raw("impl".to_string()),
                     Tabstop {
                         number: 1,
-                        contents: Some(Box::new(Lines(vec![Inline(vec![
+                        contents: Some(Box::new(Inline(vec![
                             Raw("<".to_string()),
                             Tabstop {
                                 number: 2,
-                                contents: Some(Box::new(Lines(vec![Inline(vec![Raw(
-                                    "T".to_string()
-                                )])])))
+                                contents: Some(Box::new(Raw("T".to_string())))
                             },
                             Raw(">".to_string())
-                        ])])))
+                        ])))
                     },
                     Raw(" ".to_string()),
                     Tabstop {
                         number: 3,
-                        contents: Some(Box::new(Lines(vec![Inline(vec![
+                        contents: Some(Box::new(Inline(vec![
                             Raw("Type".to_string()),
                             Tabstop {
                                 number: 1,
                                 contents: None
                             }
-                        ])])))
+                        ])))
                     },
                     Raw(" {".to_string())
                 ]),
@@ -222,24 +231,20 @@ mod tests {
                                 Raw("fn ".to_string()),
                                 Tabstop {
                                     number: 5,
-                                    contents: Some(Box::new(Lines(vec![Inline(vec![Raw(
-                                        "new".to_string()
-                                    )])])))
+                                    contents: Some(Box::new(Raw("new".to_string())))
                                 },
                                 Raw("(".to_string()),
                                 Tabstop {
                                     number: 6,
-                                    contents: Some(Box::new(Lines(vec![Inline(vec![Raw(
-                                        "arg".to_string()
-                                    )])])))
+                                    contents: Some(Box::new(Raw("arg".to_string())))
                                 },
                                 Raw(") -> ".to_string()),
                                 Tabstop {
                                     number: 7,
-                                    contents: Some(Box::new(Lines(vec![Inline(vec![Tabstop {
+                                    contents: Some(Box::new(Tabstop {
                                         number: 3,
                                         contents: None
-                                    }])])))
+                                    }))
                                 },
                                 Raw(" {".to_string())
                             ]),
@@ -247,7 +252,7 @@ mod tests {
                                 Raw("        ".to_string()),
                                 Tabstop {
                                     number: 8,
-                                    contents: Some(Box::new(Lines(vec![Inline(vec![
+                                    contents: Some(Box::new(Inline(vec![
                                         Tabstop {
                                             number: 3,
                                             contents: None
@@ -255,19 +260,17 @@ mod tests {
                                         Raw(" { ".to_string()),
                                         Tabstop {
                                             number: 9,
-                                            contents: Some(Box::new(Lines(vec![Inline(vec![
-                                                Raw("arg".to_string())
-                                            ])])))
+                                            contents: Some(Box::new(Raw("arg".to_string())))
                                         },
                                         Raw(" ".to_string())
-                                    ])])))
+                                    ])))
                                 },
                                 Raw(" ".to_string())
                             ])
                         ])))
                     }
                 ]),
-                Inline(vec![Raw("    }".to_string())]),
+                Raw("    }".to_string()),
                 Inline(vec![
                     Raw("    }".to_string()),
                     Tabstop {
@@ -275,7 +278,7 @@ mod tests {
                         contents: None
                     }
                 ]),
-                Inline(vec![Raw("}".to_string())])
+                Raw("}".to_string())
             ]))
         )
     }
