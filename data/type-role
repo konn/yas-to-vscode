@@ -1,0 +1,4 @@
+# key: role
+# name: tyr
+# --
+type role ${1:T} ${2:$$(yas-choose-value '("representational" "phantom" "nominal" "_"))}
