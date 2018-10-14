@@ -47,7 +47,7 @@ impl Token {
             Choice {
                 number,
                 alternatives,
-            } => vec![format!("${{{}|{}}}", number, alternatives.join(","))],
+            } => vec![format!("${{{}|{}|}}", number, alternatives.join(","))],
             Tabstop { number, contents } => {
                 let body = contents.map_or("".to_string(), |a| a.render().join("\n"));
                 vec![if body.is_empty() {
