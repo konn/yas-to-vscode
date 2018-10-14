@@ -10,7 +10,7 @@ use std::collections::HashMap;
 pub struct Snippet {
     pub description: String,
     pub prefix: String,
-    pub snippet: Vec<String>,
+    pub body: Vec<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -63,10 +63,10 @@ impl Snippet {
             }).collect();
         let description: String = dic.remove("description").unwrap_or("".to_string());
         let prefix = dic.remove("key").unwrap_or(name.to_string());
-        let (snippet, warnings) = validate(src);
+        let (body, warnings) = validate(src);
         let result = Snippet {
             prefix,
-            snippet,
+            body,
             description,
         };
         Ok(Converted { result, warnings })

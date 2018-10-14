@@ -36,7 +36,7 @@ fn main() {
                         .ok()?
                 }).map(|(name, snip)| {
                     if snip
-                        .snippet
+                        .body
                         .iter()
                         .any(|l| Regex::new(r"(^|[^\\])`\(|\$\$\(.+\)|\$\(").unwrap().is_match(l))
                     {
